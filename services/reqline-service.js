@@ -10,15 +10,22 @@ const parseSpec = validator.parse(`root{
 
 const VALID_KEYWORDS = ['HTTP', 'URL', 'QUERY', 'HEADERS', 'BODY'];
 
-function parseReqlineString(reqlineStr) {
-  // Ensure trimmed
-  if (reqlineStr.trim() !== reqlineStr) {
-    throwAppError('Invalid format: Input must be trimmed', ERROR_CODE.BADREQUEST);
+function removeOneSpaceEachSide(stvariable) {
+  let result = stvariable;
+  if (result.startsWith(' ')) {
+    result = result.slice(1);
   }
+  if (result.endsWith(' ')) {
+    result = result.slice(0, -1);
+  }
+  return result;
+}
 
-  const segments = reqlineStr.split('|').map((part) => part.trim());
+function parseReqlineString(reqlineStr) {
+  const segments = reqlineStr.split('|').map((part) => removeOneSpaceEachSide(part));
   const firstTokens = segments.map((s) => s.split(' ')[0]);
 
+  console.log(firstTokens, segments);
   // First and second segment checks
   if (segments.length < 2) {
     throwAppError('Missing required HTTP and URL segments', ERROR_CODE.BADREQUEST);
@@ -37,6 +44,13 @@ function parseReqlineString(reqlineStr) {
   if (hasDuplicateFirstToken) {
     throwAppError('Duplicate segment type detected', ERROR_CODE.BADREQUEST);
   }
+
+  // ensure no double spaces in segment
+  segments.forEach((seg) => {
+    if (seg.startsWith(' ') || seg.endsWith(' ')) {
+      throwAppError('Invalid format: double space found in reqline', ERROR_CODE.BADREQUEST);
+    }
+  });
 
   const parsed = {
     method: '',
