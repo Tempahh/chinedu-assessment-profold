@@ -1,9 +1,12 @@
+/* eslint-disable no-unused-vars */
 const validator = require('@app-core/validator');
 const httpRequest = require('@app-core/http-request');
 const { appLogger, TimeLogger } = require('@app-core/logger');
 const { throwAppError, ERROR_CODE } = require('@app-core/errors');
 
-const parseSpec = validator.parse(`root{reqline is a required string}`);
+const parseSpec = validator.parse(`root{
+    reqline is a required string
+}`);
 
 const VALID_KEYWORDS = ['HTTP', 'URL', 'QUERY', 'HEADERS', 'BODY'];
 
@@ -14,6 +17,15 @@ function parseReqlineString(reqlineStr) {
   }
 
   const segments = reqlineStr.split('|').map((part) => part.trim());
+  const firstTokens = segments.map((s) => s.split(' ')[0]);
+
+  const hasDuplicateFirstToken = firstTokens.some(
+    (token, idx) => firstTokens.indexOf(token) !== idx
+  );
+
+  if (hasDuplicateFirstToken) {
+    throw new Error('Duplicate segment type detected');
+  }
 
   // First and second segment checks
   if (segments.length < 2) {
@@ -53,11 +65,6 @@ function parseReqlineString(reqlineStr) {
       throwAppError(`Unknown keyword: '${keyword}'`, ERROR_CODE.BADREQUEST);
     }
 
-    // No duplicates
-    if (parsed[keyword.toLowerCase()]) {
-      throwAppError(`Duplicate keyword: '${keyword}'`, ERROR_CODE.BADREQUEST);
-    }
-
     switch (keyword) {
       case 'HTTP':
         if (!['GET', 'POST'].includes(value)) {
@@ -66,9 +73,11 @@ function parseReqlineString(reqlineStr) {
         parsed.method = value;
         break;
       case 'URL':
-        try {
-          new URL(value);
-        } catch {
+        // Basic URL validation without regex for Node.js 8 compatibility
+        if (
+          !(value.startsWith('http://') || value.startsWith('https://')) ||
+          value.length <= 'http://'.length
+        ) {
           throwAppError(`Invalid URL format: '${value}'`, ERROR_CODE.BADREQUEST);
         }
         parsed.url = value;
@@ -82,6 +91,8 @@ function parseReqlineString(reqlineStr) {
           throwAppError(`Invalid JSON for ${keyword}`, ERROR_CODE.BADREQUEST);
         }
         break;
+      default:
+        throwAppError(`Unhandled keyword: '${keyword}'`, ERROR_CODE.BADREQUEST);
     }
   });
 
@@ -137,6 +148,7 @@ async function parseReqline(serviceData) {
   } catch (error) {
     appLogger.error(error);
     if (error.code) throw error;
+    console.error('Error processing reqline statement:', error);
     throwAppError('Error processing reqline statement', ERROR_CODE.BADREQUEST);
   }
 }

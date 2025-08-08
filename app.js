@@ -48,6 +48,7 @@ function logEndpointMetaData(endpointConfigs) {
         }
 
         endpointData.push(entry);
+        console.log(`Registered endpoint: ${entry.method} ${entry.endpoint} - ${entry.name}`);
       }
     });
   });

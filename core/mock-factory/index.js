@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const createMockFactory = require('./create');
 const findOneMockFactory = require('./find-one');
 const findManyMockFactory = require('./find-many');

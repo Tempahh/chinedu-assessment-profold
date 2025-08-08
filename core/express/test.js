@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // @ts-check
 /**
  * @typedef {200|400|401|403|500} HttpStatusCodeNumber
