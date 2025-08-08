@@ -19,14 +19,6 @@ function parseReqlineString(reqlineStr) {
   const segments = reqlineStr.split('|').map((part) => part.trim());
   const firstTokens = segments.map((s) => s.split(' ')[0]);
 
-  const hasDuplicateFirstToken = firstTokens.some(
-    (token, idx) => firstTokens.indexOf(token) !== idx
-  );
-
-  if (hasDuplicateFirstToken) {
-    throw new Error('Duplicate segment type detected');
-  }
-
   // First and second segment checks
   if (segments.length < 2) {
     throwAppError('Missing required HTTP and URL segments', ERROR_CODE.BADREQUEST);
@@ -36,6 +28,14 @@ function parseReqlineString(reqlineStr) {
   }
   if (segments[1].split(' ')[0].toUpperCase() !== 'URL') {
     throwAppError('Second segment must start with URL', ERROR_CODE.BADREQUEST);
+  }
+
+  const hasDuplicateFirstToken = firstTokens.some(
+    (token, idx) => firstTokens.indexOf(token) !== idx
+  );
+
+  if (hasDuplicateFirstToken) {
+    throwAppError('Duplicate segment type detected', ERROR_CODE.BADREQUEST);
   }
 
   const parsed = {
