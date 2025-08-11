@@ -49,7 +49,7 @@ function parseReqlineString(reqlineStr) {
 
   // ensure no double spaces in segment
   segments.forEach((seg) => {
-    if (seg.startsWith(' ') || seg.endsWith(' ')) {
+    if (seg.startsWith(' ') || seg.endsWith(' ') || seg.includes('  ')) {
       throwAppError('Invalid format: double space found in reqline', ERROR_CODE.BADREQUEST);
     }
   });
