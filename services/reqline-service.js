@@ -37,6 +37,8 @@ function parseReqlineString(reqlineStr) {
     throwAppError('Second segment must start with URL', ERROR_CODE.BADREQUEST);
   }
 
+  // check for duplicate first tokens
+  // This checks if any first token appears more than once in the segments
   const hasDuplicateFirstToken = firstTokens.some(
     (token, idx) => firstTokens.indexOf(token) !== idx
   );
@@ -87,7 +89,7 @@ function parseReqlineString(reqlineStr) {
         parsed.method = value;
         break;
       case 'URL':
-        // Basic URL validation without regex for Node.js 8 compatibility
+        // Basic URL validation
         if (
           !(value.startsWith('http://') || value.startsWith('https://')) ||
           value.length <= 'http://'.length
@@ -163,7 +165,7 @@ async function parseReqline(serviceData) {
     appLogger.error(error);
     if (error.code) throw error;
     console.error('Error processing reqline statement:', error);
-    throwAppError('Error processing reqline statement', ERROR_CODE.BADREQUEST);
+    throwAppError(error, ERROR_CODE.BADREQUEST);
   }
 }
 
